@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t feare56/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run feare56/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t feare56/multi-client ./client
+  - docker build -t feare56/multi-nginx ./nginx
+  - docker build -t feare56/multi-server ./server
+  - docker build -t feare56/multi-worker ./worker
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push feare56/multi-client
+  - docker push feare56/multi-nginx
+  - docker push feare56/multi-server
+  - docker push feare56/multi-worker
